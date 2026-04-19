@@ -1,3 +1,5 @@
+import urllib.parse
+
 from src.app import activities
 
 
@@ -32,7 +34,7 @@ def test_signup_adds_new_participant(client):
     # Arrange
     activity_name = "Chess Club"
     email = "new.student@mergington.edu"
-    endpoint = f"/activities/{activity_name}/signup"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
 
     # Act
     response = client.post(endpoint, params={"email": email})
@@ -47,7 +49,7 @@ def test_signup_fails_for_missing_activity(client):
     # Arrange
     activity_name = "Sky Diving Club"
     email = "student@mergington.edu"
-    endpoint = f"/activities/{activity_name}/signup"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
 
     # Act
     response = client.post(endpoint, params={"email": email})
@@ -61,7 +63,7 @@ def test_signup_fails_for_duplicate_participant(client):
     # Arrange
     activity_name = "Chess Club"
     existing_email = activities[activity_name]["participants"][0]
-    endpoint = f"/activities/{activity_name}/signup"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
 
     # Act
     response = client.post(endpoint, params={"email": existing_email})
@@ -75,7 +77,7 @@ def test_unregister_removes_existing_participant(client):
     # Arrange
     activity_name = "Programming Class"
     existing_email = activities[activity_name]["participants"][0]
-    endpoint = f"/activities/{activity_name}/signup"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
 
     # Act
     response = client.delete(endpoint, params={"email": existing_email})
@@ -90,7 +92,7 @@ def test_unregister_fails_for_missing_activity(client):
     # Arrange
     activity_name = "Drama Club"
     email = "student@mergington.edu"
-    endpoint = f"/activities/{activity_name}/signup"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
 
     # Act
     response = client.delete(endpoint, params={"email": email})
@@ -104,7 +106,7 @@ def test_unregister_fails_when_participant_not_enrolled(client):
     # Arrange
     activity_name = "Gym Class"
     email = "not.enrolled@mergington.edu"
-    endpoint = f"/activities/{activity_name}/signup"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
 
     # Act
     response = client.delete(endpoint, params={"email": email})
@@ -112,3 +114,27 @@ def test_unregister_fails_when_participant_not_enrolled(client):
     # Assert
     assert response.status_code == 404
     assert response.json()["detail"] == "Participant is not signed up for this activity"
+
+
+def test_signup_fails_when_email_is_missing(client):
+    # Arrange
+    activity_name = "Chess Club"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
+
+    # Act
+    response = client.post(endpoint)
+
+    # Assert
+    assert response.status_code == 422
+
+
+def test_unregister_fails_when_email_is_missing(client):
+    # Arrange
+    activity_name = "Chess Club"
+    endpoint = f"/activities/{urllib.parse.quote(activity_name, safe='')}/signup"
+
+    # Act
+    response = client.delete(endpoint)
+
+    # Assert
+    assert response.status_code == 422
